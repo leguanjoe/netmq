@@ -1,8 +1,6 @@
-﻿#if !NETSTANDARD1_3
-using System;
+﻿using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using JetBrains.Annotations;
 
 namespace NetMQ.Core.Utils
 {
@@ -13,13 +11,30 @@ namespace NetMQ.Core.Utils
 
         public static bool Open()
         {
+            // Look for an environment variable: "NETQM_SUPPRESS_RDTSC" with any value.
+            // The application can set this environment variable when this code is running in a system where
+            // it is not desirable to read the processor's time stamp counter.
+            // While this is supported in modern CPUs, the technique used for allocating executable memory, copying OP Code
+            // for the read of the time stamp and invoking the OP Code can be detected as Malware by some anti-virus vendors.
+            // https://github.com/zeromq/netmq/issues/1071
+            string val = Environment.GetEnvironmentVariable("NETQM_SUPPRESS_RDTSC");
+            if (!string.IsNullOrEmpty(val))
+                return false;
+#if NETSTANDARD1_1_OR_GREATER || NET471_OR_GREATER
+            if (RuntimeInformation.ProcessArchitecture != Architecture.X86 &&
+                RuntimeInformation.ProcessArchitecture != Architecture.X64)
+            {
+                return false; // RDTSC instruction not supported
+            }
+#endif
+
             var p = (int)Environment.OSVersion.Platform;
 
             byte[] rdtscCode = IntPtr.Size == 4 ? RDTSC_32 : RDTSC_64;
 
             s_size = (ulong)(rdtscCode.Length);
 
-            if ((p == 4) || (p == 128))
+            if ((p == 4) || (p == 128)) // Unix || Mono on Unix
             {
                 // Unix
                 if (IsARMArchitecture()) return false;
@@ -70,7 +85,7 @@ namespace NetMQ.Core.Utils
             Type syscall = currentAssembly.GetType("Mono.Unix.Native.Syscall");
             Type utsname = currentAssembly.GetType("Mono.Unix.Native.Utsname");
             MethodInfo uname = syscall.GetMethod("uname");
-            object[] parameters = { null };
+            object?[] parameters = { null };
 
             var invokeResult = (int)uname.Invoke(null, parameters);
 
@@ -108,8 +123,7 @@ namespace NetMQ.Core.Utils
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate ulong RdtscDelegate();
 
-        [CanBeNull]
-        public static RdtscDelegate Rdtsc { get; private set; }
+        public static RdtscDelegate? Rdtsc { get; private set; }
 
         // unsigned __int64 __stdcall rdtsc() {
         //   return __rdtsc();
@@ -176,4 +190,3 @@ namespace NetMQ.Core.Utils
         }
     }
 }
-#endif

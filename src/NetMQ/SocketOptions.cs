@@ -1,12 +1,13 @@
 ﻿using System;
-using JetBrains.Annotations;
+using System.Diagnostics.CodeAnalysis;
+
 using NetMQ.Core;
 
 namespace NetMQ
 {
     /// <summary>
     /// A SocketOptions is simply a convenient way to access the options of a particular socket.
-    /// This class holds a reference to the socket, and it's properties provide a concise way
+    /// This class holds a reference to the socket, and its properties provide a concise way
     /// to access that socket's option values -- instead of calling GetSocketOption/SetSocketOption.
     /// </summary>
     public class SocketOptions
@@ -20,7 +21,7 @@ namespace NetMQ
         /// Create a new SocketOptions that references the given NetMQSocket.
         /// </summary>
         /// <param name="socket">the NetMQSocket for this SocketOptions to hold a reference to</param>
-        public SocketOptions([NotNull] NetMQSocket socket)
+        public SocketOptions(NetMQSocket socket)
         {
             m_socket = socket;
         }
@@ -33,19 +34,18 @@ namespace NetMQ
         /// </summary>
         public long Affinity
         {
-            get { return m_socket.GetSocketOptionLong(ZmqSocketOption.Affinity); }
-            set { m_socket.SetSocketOption(ZmqSocketOption.Affinity, value); }
+            get => m_socket.GetSocketOptionLong(ZmqSocketOption.Affinity);
+            set => m_socket.SetSocketOption(ZmqSocketOption.Affinity, value);
         }
 
         /// <summary>
         /// Get or set unique identity of the socket, from a message-queueing router's perspective.
         /// This is a byte-array of at most 255 bytes.
         /// </summary>
-        public byte[] Identity
+        [DisallowNull]
+        public byte[]? Identity
         {
-            [CanBeNull]
             get { return m_socket.GetSocketOptionX<byte[]>(ZmqSocketOption.Identity); }
-            [NotNull]
             set { m_socket.SetSocketOption(ZmqSocketOption.Identity, value); }
         }
 
@@ -54,8 +54,8 @@ namespace NetMQ
         /// </summary>
         public int MulticastRate
         {
-            get { return m_socket.GetSocketOption(ZmqSocketOption.Rate); }
-            set { m_socket.SetSocketOption(ZmqSocketOption.Rate, value); }
+            get => m_socket.GetSocketOption(ZmqSocketOption.Rate);
+            set => m_socket.SetSocketOption(ZmqSocketOption.Rate, value);
         }
 
         /// <summary>
@@ -65,8 +65,8 @@ namespace NetMQ
         /// </summary>
         public TimeSpan MulticastRecoveryInterval
         {
-            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.RecoveryIvl); }
-            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.RecoveryIvl, value); }
+            get => m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.RecoveryIvl);
+            set => m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.RecoveryIvl, value);
         }
 
         /// <summary>
@@ -74,8 +74,8 @@ namespace NetMQ
         /// </summary>
         public int SendBuffer
         {
-            get { return m_socket.GetSocketOption(ZmqSocketOption.SendBuffer); }
-            set { m_socket.SetSocketOption(ZmqSocketOption.SendBuffer, value); }
+            get => m_socket.GetSocketOption(ZmqSocketOption.SendBuffer);
+            set => m_socket.SetSocketOption(ZmqSocketOption.SendBuffer, value);
         }
 
         /// <summary>
@@ -84,8 +84,8 @@ namespace NetMQ
         /// </summary>
         public int ReceiveBuffer
         {
-            get { return m_socket.GetSocketOption(ZmqSocketOption.ReceiveBuffer); }
-            set { m_socket.SetSocketOption(ZmqSocketOption.ReceiveBuffer, value); }
+            get => m_socket.GetSocketOption(ZmqSocketOption.ReceiveBuffer);
+            set => m_socket.SetSocketOption(ZmqSocketOption.ReceiveBuffer, value);
         }
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace NetMQ
         /// shall linger in memory after a socket is closed.
         /// </summary>
         /// <remarks>
-        /// If socket created with Context default is -1 if socket createw without socket (using new keyword) default is zero.
+        /// If socket created with Context default is -1 if socket created without socket (using new keyword) default is zero.
         /// If context is used this also affects the termination of context, otherwise this affects the exit of the process.
         /// -1: Specifies an infinite linger period. Pending messages shall not be discarded after the socket is closed;
         /// attempting to terminate the socket's context shall block until all pending messages have been sent to a peer.
@@ -111,8 +111,8 @@ namespace NetMQ
         /// </remarks>
         public TimeSpan Linger
         {
-            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.Linger); }
-            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.Linger, value); }
+            get => m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.Linger);
+            set => m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.Linger, value);
         }
 
         /// <summary>
@@ -127,8 +127,8 @@ namespace NetMQ
         /// </remarks>
         public TimeSpan ReconnectInterval
         {
-            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.ReconnectIvl); }
-            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.ReconnectIvl, value); }
+            get => m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.ReconnectIvl);
+            set => m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.ReconnectIvl, value);
         }
 
         /// <summary>
@@ -148,8 +148,8 @@ namespace NetMQ
         /// </remarks>
         public TimeSpan ReconnectIntervalMax
         {
-            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.ReconnectIvlMax); }
-            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.ReconnectIvlMax, value); }
+            get => m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.ReconnectIvlMax);
+            set => m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.ReconnectIvlMax, value);
         }
 
         /// <summary>
@@ -159,8 +159,8 @@ namespace NetMQ
         /// </summary>
         public int Backlog
         {
-            get { return m_socket.GetSocketOption(ZmqSocketOption.Backlog); }
-            set { m_socket.SetSocketOption(ZmqSocketOption.Backlog, value); }
+            get => m_socket.GetSocketOption(ZmqSocketOption.Backlog);
+            set => m_socket.SetSocketOption(ZmqSocketOption.Backlog, value);
         }
 
         /// <summary>
@@ -170,8 +170,8 @@ namespace NetMQ
         /// </summary>
         public long MaxMsgSize
         {
-            get { return m_socket.GetSocketOptionLong(ZmqSocketOption.MaxMessageSize); }
-            set { m_socket.SetSocketOption(ZmqSocketOption.MaxMessageSize, value); }
+            get => m_socket.GetSocketOptionLong(ZmqSocketOption.MaxMessageSize);
+            set => m_socket.SetSocketOption(ZmqSocketOption.MaxMessageSize, value);
         }
 
         /// <summary>
@@ -182,8 +182,8 @@ namespace NetMQ
         /// </summary>
         public int SendHighWatermark
         {
-            get { return m_socket.GetSocketOption(ZmqSocketOption.SendHighWatermark); }
-            set { m_socket.SetSocketOption(ZmqSocketOption.SendHighWatermark, value); }
+            get => m_socket.GetSocketOption(ZmqSocketOption.SendHighWatermark);
+            set => m_socket.SetSocketOption(ZmqSocketOption.SendHighWatermark, value);
         }
 
         /// <summary>
@@ -194,8 +194,8 @@ namespace NetMQ
         /// </summary>
         public int ReceiveHighWatermark
         {
-            get { return m_socket.GetSocketOption(ZmqSocketOption.ReceiveHighWatermark); }
-            set { m_socket.SetSocketOption(ZmqSocketOption.ReceiveHighWatermark, value); }
+            get => m_socket.GetSocketOption(ZmqSocketOption.ReceiveHighWatermark);
+            set => m_socket.SetSocketOption(ZmqSocketOption.ReceiveHighWatermark, value);
         }
 
         /// <summary>
@@ -206,8 +206,8 @@ namespace NetMQ
         /// </summary>
         public int SendLowWatermark
         {
-            get { return m_socket.GetSocketOption(ZmqSocketOption.SendLowWatermark); }
-            set { m_socket.SetSocketOption(ZmqSocketOption.SendLowWatermark, value); }
+            get => m_socket.GetSocketOption(ZmqSocketOption.SendLowWatermark);
+            set => m_socket.SetSocketOption(ZmqSocketOption.SendLowWatermark, value);
         }
 
         /// <summary>
@@ -218,8 +218,8 @@ namespace NetMQ
         /// </summary>
         public int ReceiveLowWatermark
         {
-            get { return m_socket.GetSocketOption(ZmqSocketOption.ReceiveLowWatermark); }
-            set { m_socket.SetSocketOption(ZmqSocketOption.ReceiveLowWatermark, value); }
+            get => m_socket.GetSocketOption(ZmqSocketOption.ReceiveLowWatermark);
+            set => m_socket.SetSocketOption(ZmqSocketOption.ReceiveLowWatermark, value);
         }
 
         /// <summary>
@@ -229,8 +229,8 @@ namespace NetMQ
         /// </summary>
         public int MulticastHops
         {
-            get { return m_socket.GetSocketOption(ZmqSocketOption.MulticastHops); }
-            set { m_socket.SetSocketOption(ZmqSocketOption.MulticastHops, value); }
+            get => m_socket.GetSocketOption(ZmqSocketOption.MulticastHops);
+            set => m_socket.SetSocketOption(ZmqSocketOption.MulticastHops, value);
         }
 
         /// <summary>
@@ -239,8 +239,8 @@ namespace NetMQ
         /// </summary>
         public bool IPv4Only
         {
-            get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOption.IPv4Only); }
-            set { m_socket.SetSocketOption(ZmqSocketOption.IPv4Only, value); }
+            get => m_socket.GetSocketOptionX<bool>(ZmqSocketOption.IPv4Only);
+            set => m_socket.SetSocketOption(ZmqSocketOption.IPv4Only, value);
         }
 
         /// <summary>
@@ -251,17 +251,16 @@ namespace NetMQ
         /// If the TCP host is ANY, indicated by a *, then the returned address
         /// will be 0.0.0.0 (for IPv4).
         /// </remarks>
-        [CanBeNull]
-        public string LastEndpoint => m_socket.GetSocketOptionX<string>(ZmqSocketOption.LastEndpoint);
+        public string? LastEndpoint => m_socket.GetSocketOptionX<string>(ZmqSocketOption.LastEndpoint);
 
         /// <summary>
         /// Set the RouterSocket behavior when an unroutable message is encountered.
         /// A value of false is the default and discards the message silently when it cannot be routed.
         /// A value of true causes throw of HostUnreachableException if the message cannot be routed.
-        /// </summary>       
+        /// </summary>
         public bool RouterMandatory
         {
-            set { m_socket.SetSocketOption(ZmqSocketOption.RouterMandatory, value); }
+            set => m_socket.SetSocketOption(ZmqSocketOption.RouterMandatory, value);
         }
 
         /// <summary>
@@ -278,8 +277,8 @@ namespace NetMQ
         /// </remarks>
         public bool TcpKeepalive
         {
-            get { return m_socket.GetSocketOption(ZmqSocketOption.TcpKeepalive) == 1; }
-            set { m_socket.SetSocketOption(ZmqSocketOption.TcpKeepalive, value ? 1 : 0); }
+            get => m_socket.GetSocketOption(ZmqSocketOption.TcpKeepalive) == 1;
+            set => m_socket.SetSocketOption(ZmqSocketOption.TcpKeepalive, value ? 1 : 0);
             // TODO: What about the value -1, which means use the OS default?  jh
             // See  http://api.zeromq.org/3-2:zmq-getsockopt
         }
@@ -291,8 +290,8 @@ namespace NetMQ
         /// </summary>
         public TimeSpan TcpKeepaliveIdle
         {
-            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.TcpKeepaliveIdle); }
-            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.TcpKeepaliveIdle, value); }
+            get => m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.TcpKeepaliveIdle);
+            set => m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.TcpKeepaliveIdle, value);
             // TODO: What about the value -1, which means use the OS default?  jh
             // See  http://api.zeromq.org/3-2:zmq-getsockopt
         }
@@ -309,8 +308,8 @@ namespace NetMQ
         /// </remarks>
         public TimeSpan TcpKeepaliveInterval
         {
-            get { return m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.TcpKeepaliveIntvl); }
-            set { m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.TcpKeepaliveIntvl, value); }
+            get => m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.TcpKeepaliveIntvl);
+            set => m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.TcpKeepaliveIntvl, value);
         }
 
         /// <summary>
@@ -323,8 +322,8 @@ namespace NetMQ
         /// </summary>
         public bool DelayAttachOnConnect
         {
-            get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOption.DelayAttachOnConnect); }
-            set { m_socket.SetSocketOption(ZmqSocketOption.DelayAttachOnConnect, value); }
+            get => m_socket.GetSocketOptionX<bool>(ZmqSocketOption.DelayAttachOnConnect);
+            set => m_socket.SetSocketOption(ZmqSocketOption.DelayAttachOnConnect, value);
         }
 
         /// <summary>
@@ -334,7 +333,7 @@ namespace NetMQ
         /// </summary>
         public bool XPubVerbose
         {
-            set { m_socket.SetSocketOption(ZmqSocketOption.XpubVerbose, value); }
+            set => m_socket.SetSocketOption(ZmqSocketOption.XpubVerbose, value);
         }
 
         /// <summary>
@@ -343,7 +342,7 @@ namespace NetMQ
         /// </summary>
         public bool XPubBroadcast
         {
-            set { m_socket.SetSocketOption(ZmqSocketOption.XPublisherBroadcast, value); }
+            set => m_socket.SetSocketOption(ZmqSocketOption.XPublisherBroadcast, value);
         }
 
         /// <summary>
@@ -353,7 +352,7 @@ namespace NetMQ
         /// </summary>
         public bool RouterRawSocket
         {
-            set { m_socket.SetSocketOption(ZmqSocketOption.RouterRawSocket, value); }
+            set => m_socket.SetSocketOption(ZmqSocketOption.RouterRawSocket, value);
         }
 
         /// <summary>
@@ -361,7 +360,7 @@ namespace NetMQ
         /// </summary>
         public bool RouterHandover
         {
-            set { m_socket.SetSocketOption(ZmqSocketOption.RouterHandover, value); }
+            set => m_socket.SetSocketOption(ZmqSocketOption.RouterHandover, value);
         }
 
         /// <summary>
@@ -369,32 +368,151 @@ namespace NetMQ
         /// </summary>
         public Endianness Endian
         {
-            get { return m_socket.GetSocketOptionX<Endianness>(ZmqSocketOption.Endian); }
-            set { m_socket.SetSocketOption(ZmqSocketOption.Endian, value); }
+            get => m_socket.GetSocketOptionX<Endianness>(ZmqSocketOption.Endian);
+            set => m_socket.SetSocketOption(ZmqSocketOption.Endian, value);
         }
 
         /// <summary>
+        /// Enable Manual Publisher, Publisher won't add subscription automatically,
+        /// Subscribe must be called on the socket to add subscription. 
         /// </summary>
         public bool ManualPublisher
         {
-            set { m_socket.SetSocketOption(ZmqSocketOption.XPublisherManual, value); }
+            set => m_socket.SetSocketOption(ZmqSocketOption.XPublisherManual, value);
         }
 
         /// <summary>
+        /// Disable socket time-wait
         /// </summary>
         public bool DisableTimeWait
         {
-            get { return m_socket.GetSocketOptionX<bool>(ZmqSocketOption.DisableTimeWait); }
-            set { m_socket.SetSocketOption(ZmqSocketOption.DisableTimeWait, value); }
+            get => m_socket.GetSocketOptionX<bool>(ZmqSocketOption.DisableTimeWait);
+            set => m_socket.SetSocketOption(ZmqSocketOption.DisableTimeWait, value);
         }
+
+        /// <summary>
+        /// Get the last PEER allocated routing id
+        /// </summary>
+        public byte[]? LastPeerRoutingId => m_socket.GetSocketOptionX<byte[]>(ZmqSocketOption.LastPeerRoutingId);
 
         /// <summary>
         /// Controls the maximum datagram size for PGM.
         /// </summary>
         public int PgmMaxTransportServiceDataUnitLength
         {
-            get { return m_socket.GetSocketOptionX<int>(ZmqSocketOption.PgmMaxTransportServiceDataUnitLength); }
-            set { m_socket.SetSocketOption(ZmqSocketOption.PgmMaxTransportServiceDataUnitLength, value); }
+            get => m_socket.GetSocketOptionX<int>(ZmqSocketOption.PgmMaxTransportServiceDataUnitLength);
+            set => m_socket.SetSocketOption(ZmqSocketOption.PgmMaxTransportServiceDataUnitLength, value);
+        }
+
+        /// <summary>
+        /// Defines whether the socket will act as server for CURVE security.
+        /// A value of true means the socket will act as CURVE server.
+        /// A value of false means the socket will not act as CURVE server, and its security role then depends on other option settings.
+        /// Setting this to false shall reset the socket security to NULL.
+        /// When you set this you must also set the server's secret key. A server socket does not need to know its own public key.
+        /// </summary>
+        public bool CurveServer
+        {
+            get => m_socket.GetSocketOptionX<bool>(ZmqSocketOption.CurveServer);
+            set => m_socket.SetSocketOption(ZmqSocketOption.CurveServer, value);
+        }
+
+        /// <summary>
+        /// Sets the socket's long term curve key pair.
+        /// You must set this on both CURVE client and server sockets.
+        /// You can provide the key as 32 binary bytes.
+        /// To generate a certificate, use <see cref="NetMQCertificate"/>.
+        /// </summary>
+        public NetMQCertificate CurveCertificate
+        {
+            set
+            {
+                if (value.SecretKey == null)
+                    throw new ArgumentException("NetMQCertificate must have a secret key", nameof(value));
+                
+                m_socket.SetSocketOption(ZmqSocketOption.CurveSecretKey, value.SecretKey);
+                m_socket.SetSocketOption(ZmqSocketOption.CurvePublicKey, value.PublicKey);
+            } 
+        }
+        
+        /// <summary>
+        /// Sets the socket's long term server key.
+        /// You must set this on CURVE client sockets.
+        /// You can provide the key as 32 binary bytes.
+        /// This key must have been generated together with the server's secret key.
+        /// To generate a public/secret key pair, use <see cref="NetMQCertificate"/>.
+        /// </summary>
+        [DisallowNull]
+        public byte[]? CurveServerKey
+        {
+            get => m_socket.GetSocketOptionX<byte[]>(ZmqSocketOption.CurveServerKey);
+            set => m_socket.SetSocketOption(ZmqSocketOption.CurveServerKey, value);
+        }
+
+        /// <summary>
+        /// Sets the socket's long term server certificate.
+        /// You must set this on CURVE client sockets.
+        /// You can provide the key as 32 binary bytes.
+        /// This key must have been generated together with the server's secret key.
+        /// To generate a certificate, use <see cref="NetMQCertificate"/>.
+        /// </summary>
+        public NetMQCertificate CurveServerCertificate
+        {
+            set => m_socket.SetSocketOption(ZmqSocketOption.CurveServerKey, value.PublicKey);
+        }
+        
+        /// <summary>
+        /// If remote peer receives a PING message and doesn't receive another
+        /// message within the ttl value, it should close the connection
+        /// (measured in tenths of a second)
+        /// </summary>
+        public TimeSpan HeartbeatTtl
+        {
+            get => m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.HeartbeatTtl);
+            set => m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.HeartbeatTtl, value);
+        }
+
+        /// <summary>
+        /// Time in milliseconds between sending heartbeat PING messages.
+        /// </summary>
+        public TimeSpan HeartbeatInterval
+        {
+            get => m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.HeartbeatInterval);
+            set => m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.HeartbeatInterval, value);
+        }
+        
+        /// <summary>
+        /// Time in milliseconds to wait for a PING response before disconnecting
+        /// </summary>
+        public TimeSpan HeartbeatTimeout
+        {
+            get => m_socket.GetSocketOptionTimeSpan(ZmqSocketOption.HeartbeatTimeout);
+            set => m_socket.SetSocketOptionTimeSpan(ZmqSocketOption.HeartbeatTimeout, value);
+        }
+
+        /// <summary>
+        /// Set message to send to peer upon connecting
+        /// </summary>
+        public byte[] HelloMessage
+        {
+            set => m_socket.SetSocketOption(ZmqSocketOption.HelloMessage, value);
+        }
+
+        /// <summary>
+        /// relax strict alternation between request and reply on REQ sockets
+        /// </summary>
+        public bool Relaxed
+        {
+            get => m_socket.GetSocketOptionX<bool>(ZmqSocketOption.Relaxed);
+            set => m_socket.SetSocketOption(ZmqSocketOption.Relaxed, value);
+        }
+        /// <summary>
+        /// match replies with requests on REQ sockets
+        /// </summary>
+        public bool Correlate
+        {
+            get => m_socket.GetSocketOptionX<bool>(ZmqSocketOption.Correlate);
+            set => m_socket.SetSocketOption(ZmqSocketOption.Correlate, value);
         }
     }
 }

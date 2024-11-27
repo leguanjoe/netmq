@@ -23,7 +23,6 @@ using System;
 using System.Diagnostics;
 using System.Net.Sockets;
 using AsyncIO;
-using JetBrains.Annotations;
 
 namespace NetMQ.Core.Transports.Tcp
 {
@@ -47,8 +46,7 @@ namespace NetMQ.Core.Transports.Tcp
         /// <summary>
         /// The underlying AsyncSocket.
         /// </summary>
-        [CanBeNull]
-        private AsyncSocket m_s;
+        private AsyncSocket? m_s;
 
         /// <summary>
         /// If true file descriptor is registered with the poller and 'handle'
@@ -94,7 +92,7 @@ namespace NetMQ.Core.Transports.Tcp
         /// <param name="options">Options that define this new TcpC</param>
         /// <param name="addr">the Address for this Tcp to connect to</param>
         /// <param name="delayedStart">this boolean flag dictates whether to wait before trying to connect</param>
-        public TcpConnector([NotNull] IOThread ioThread, [NotNull] SessionBase session, [NotNull] Options options, [NotNull] Address addr, bool delayedStart)
+        public TcpConnector(IOThread ioThread, SessionBase session, Options options, Address addr, bool delayedStart)
             : base(ioThread, options)
         {
             m_ioObject = new IOObject(ioThread);
@@ -106,7 +104,7 @@ namespace NetMQ.Core.Transports.Tcp
             m_session = session;
             m_currentReconnectIvl = m_options.ReconnectIvl;
 
-            Debug.Assert(m_addr != null);
+            Assumes.NotNull(m_addr);
             m_endpoint = m_addr.ToString();
             m_socket = session.Socket;
         }
@@ -150,6 +148,7 @@ namespace NetMQ.Core.Transports.Tcp
 
             if (m_handleValid)
             {
+                Assumes.NotNull(m_s);
                 m_ioObject.RemoveSocket(m_s);
                 m_handleValid = false;
             }
@@ -181,6 +180,8 @@ namespace NetMQ.Core.Transports.Tcp
             // Create the socket.
             try
             {
+                Assumes.NotNull(m_addr.Resolved);
+                Assumes.NotNull(m_addr.Resolved.Address);
                 m_s = AsyncSocket.Create(m_addr.Resolved.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             }
             catch (SocketException)
@@ -202,7 +203,7 @@ namespace NetMQ.Core.Transports.Tcp
             {
                 OutCompleted(ex.SocketErrorCode, 0);
             }
-            // TerminatingException can occur in above call to EventConnectDelayed via 
+            // TerminatingException can occur in above call to EventConnectDelayed via
             // MonitorEvent.Write if corresponding PairSocket has been sent Term command
             catch (TerminatingException)
             {}
@@ -217,6 +218,8 @@ namespace NetMQ.Core.Transports.Tcp
         /// <exception cref="NetMQException">If the socketError is not Success then it must be a valid recoverable error.</exception>
         public void OutCompleted(SocketError socketError, int bytesTransferred)
         {
+            Assumes.NotNull(m_s);
+
             if (socketError != SocketError.Success)
             {
                 m_ioObject.RemoveSocket(m_s);
@@ -225,27 +228,19 @@ namespace NetMQ.Core.Transports.Tcp
                 Close();
 
                 // Try again to connect after a time,
-                // as long as the error is one of these..
-                if (socketError == SocketError.ConnectionRefused || socketError == SocketError.TimedOut ||
-                    socketError == SocketError.ConnectionAborted ||
-                    socketError == SocketError.HostUnreachable || socketError == SocketError.NetworkUnreachable ||
-                    socketError == SocketError.NetworkDown || socketError == SocketError.AccessDenied ||
-                    socketError == SocketError.OperationAborted)
-                {
-                    if (m_options.ReconnectIvl >= 0)
-                        AddReconnectTimer();
-                }
-                else
-                {
-                    throw NetMQException.Create(socketError);
-                }
+                if (m_options.ReconnectIvl >= 0)
+                    AddReconnectTimer();
             }
             else
             {
                 m_ioObject.RemoveSocket(m_s);
                 m_handleValid = false;
 
-                m_s.NoDelay = true;
+                try {
+                    m_s.NoDelay = true;
+                } catch (ArgumentException) {
+                    // OSX sometime fail while the socket is still connecting
+                }
 
                 // As long as the TCP keep-alive option is not -1 (indicating no change),
                 if (m_options.TcpKeepalive != -1)
@@ -334,7 +329,7 @@ namespace NetMQ.Core.Transports.Tcp
         /// </summary>
         private void Close()
         {
-            Debug.Assert(m_s != null);
+            Assumes.NotNull(m_s);
             try
             {
                 m_s.Dispose();

@@ -3,7 +3,6 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using AsyncIO;
-using JetBrains.Annotations;
 #if DEBUG
 using System.Diagnostics;
 #endif
@@ -72,7 +71,7 @@ namespace NetMQ.Core.Transports.Pgm
         private readonly PgmSocketType m_pgmSocketType;
         private readonly PgmAddress m_pgmAddress;
 
-        public PgmSocket([NotNull] Options options, PgmSocketType pgmSocketType, [NotNull] PgmAddress pgmAddress)
+        public PgmSocket(Options options, PgmSocketType pgmSocketType, PgmAddress pgmAddress)
         {
             m_options = options;
             m_pgmSocketType = pgmSocketType;
@@ -96,19 +95,16 @@ namespace NetMQ.Core.Transports.Pgm
             {
                 string xMsg = $"SocketException with SocketErrorCode={x.SocketErrorCode}, Message={x.Message}, in PgmSocket.Init, within AsyncSocket.Create(AddressFamily.InterNetwork, SocketType.Rdm, PGM_PROTOCOL_TYPE), {this}";
                 Debug.WriteLine(xMsg);
-                // If running on Microsoft Windows, suggest to the developer that he may need to install MSMQ in order to get PGM socket support.
 
-#if NETSTANDARD1_3
+                // If running on Microsoft Windows, suggest to the developer that he may need to install MSMQ in order to get PGM socket support.
+#if NETSTANDARD1_1_OR_GREATER
                 bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 #else
-                PlatformID p = Environment.OSVersion.Platform;
                 bool isWindows = true;
-                switch (p)
+                switch (Environment.OSVersion.Platform)
                 {
                     case PlatformID.Win32NT:
-                        break;
                     case PlatformID.Win32S:
-                        break;
                     case PlatformID.Win32Windows:
                         break;
                     default:
@@ -123,6 +119,7 @@ namespace NetMQ.Core.Transports.Pgm
                 throw new FaultException(innerException: x, message: xMsg);
             }
 #endif
+
             Handle.ExclusiveAddressUse = false;
             Handle.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
         }
@@ -134,6 +131,8 @@ namespace NetMQ.Core.Transports.Pgm
 
         internal void InitOptions()
         {
+            Assumes.NotNull(Handle);
+
             // Enable gigabit on the socket
             try
             {
@@ -199,7 +198,7 @@ namespace NetMQ.Core.Transports.Pgm
             }
         }
 
-        public AsyncSocket Handle { get; private set; }
+        public AsyncSocket? Handle { get; private set; }
 
         /// <summary>
         /// Override the ToString method to produce a more descriptive, useful description.
@@ -218,6 +217,8 @@ namespace NetMQ.Core.Transports.Pgm
 
         public void Dispose()
         {
+            Assumes.NotNull(Handle);
+
             Handle.Dispose();
         }
     }

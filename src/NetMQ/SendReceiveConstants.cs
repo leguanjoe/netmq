@@ -4,6 +4,7 @@ using System.Text;
 namespace NetMQ
 {
     /// <summary>
+    /// Constants for the send and receive operation
     /// </summary>
     public static class SendReceiveConstants
     {

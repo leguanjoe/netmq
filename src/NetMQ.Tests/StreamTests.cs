@@ -1,13 +1,14 @@
-﻿using NUnit.Framework;
+﻿using Xunit;
 
 using NetMQ.Sockets;
 
 namespace NetMQ.Tests
 {
-    [TestFixture]
-    public class StreamTests
+    public class StreamTests : IClassFixture<CleanupAfterFixture>
     {
-        [Test]
+        public StreamTests() => NetMQConfig.Cleanup();
+
+        [Fact]
         public void StreamToStream()
         {
             using (var server = new StreamSocket())
@@ -16,7 +17,9 @@ namespace NetMQ.Tests
                 var port = server.BindRandomPort("tcp://*");
                 client.Connect("tcp://127.0.0.1:" + port);
 
-                byte[] clientId = client.Options.Identity;
+                byte[]? clientId = client.Options.Identity;
+
+                Assert.NotNull(clientId);
 
                 const string request = "GET /\r\n";
 
@@ -25,15 +28,15 @@ namespace NetMQ.Tests
                         "\r\n" +
                         "Hello, World!";
 
-                client.SendMoreFrame(clientId).SendFrame(request);
+                client.SendMoreFrame(clientId!).SendFrame(request);
 
                 byte[] serverId = server.ReceiveFrameBytes();
-                Assert.AreEqual(request, server.ReceiveFrameString());
+                Assert.Equal(request, server.ReceiveFrameString());
 
                 server.SendMoreFrame(serverId).SendFrame(response);
 
-                CollectionAssert.AreEqual(clientId, client.ReceiveFrameBytes());
-                Assert.AreEqual(response, client.ReceiveFrameString());
+                Assert.Equal(clientId, client.ReceiveFrameBytes());
+                Assert.Equal(response, client.ReceiveFrameString());
             }
         }
     }

@@ -1,5 +1,4 @@
 ﻿using System;
-using JetBrains.Annotations;
 using NetMQ.Core.Utils;
 
 namespace NetMQ
@@ -13,7 +12,7 @@ namespace NetMQ
         /// Create a new NetMQTimerEventArgs that contains a reference to the given NetMQTimer.
         /// </summary>
         /// <param name="timer">the NetMQTimer to hold a reference to</param>
-        public NetMQTimerEventArgs([NotNull] NetMQTimer timer)
+        public NetMQTimerEventArgs(NetMQTimer timer)
         {
             Timer = timer;
         }
@@ -21,8 +20,7 @@ namespace NetMQ
         /// <summary>
         /// Get the NetMQTimer that this has a reference to.
         /// </summary>
-        [NotNull]
-        public NetMQTimer Timer { get; private set; }
+        public NetMQTimer Timer { get; }
     }
 
     /// <summary>
@@ -49,7 +47,7 @@ namespace NetMQ
         /// <summary>
         /// This event is used to signal when the timer has expired.
         /// </summary>
-        public event EventHandler<NetMQTimerEventArgs> Elapsed;
+        public event EventHandler<NetMQTimerEventArgs>? Elapsed;
 
         /// <summary>
         /// Create a new NetMQTimer with the timer-interval specified by the given TimeSpan.
@@ -85,7 +83,7 @@ namespace NetMQ
         /// </remarks>
         public int Interval
         {
-            get { return m_interval; }
+            get => m_interval;
             set
             {
                 m_interval = value;
@@ -102,7 +100,7 @@ namespace NetMQ
         /// </remarks>
         public bool Enable
         {
-            get { return m_enable; }
+            get => m_enable;
             set
             {
                 if (m_enable == value)

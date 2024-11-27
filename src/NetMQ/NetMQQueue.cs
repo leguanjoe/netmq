@@ -1,25 +1,25 @@
+#if !NET35
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using NetMQ.Sockets;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 
 namespace NetMQ
 {
     /// <summary>
+    /// Events args for NetMQQueue
     /// </summary>
+    /// <typeparam name="T">The type of the queue</typeparam>
     public sealed class NetMQQueueEventArgs<T> : EventArgs
     {
+        internal NetMQQueueEventArgs(NetMQQueue<T> queue) => Queue = queue;
+        
         /// <summary>
+        /// The queue that invoked the event 
         /// </summary>
-        public NetMQQueueEventArgs(NetMQQueue<T> queue)
-        {
-            Queue = queue;
-        }
-
-        /// <summary>
-        /// </summary>
-        public NetMQQueue<T> Queue { get; private set; }
+        public NetMQQueue<T> Queue { get; }
     }
 
     /// <summary>
@@ -44,17 +44,14 @@ namespace NetMQ
                 throw new ArgumentOutOfRangeException(nameof(capacity));
 
             m_queue = new ConcurrentQueue<T>();
-            PairSocket.CreateSocketPair(out m_writer, out m_reader);
+            PairSocket.CreateSocketPair(out m_writer,
+                                        out m_reader,
+                                        writer => writer.Options.SendHighWatermark = capacity / 2,
+                                        reader => reader.Options.ReceiveHighWatermark = capacity / 2);
 
-            m_writer.Options.SendHighWatermark = m_reader.Options.ReceiveHighWatermark = capacity / 2;
-
-            m_eventDelegator = new EventDelegator<NetMQQueueEventArgs<T>>(() =>
-            {
-                m_reader.ReceiveReady += OnReceiveReady;
-            }, () =>
-            {
-                m_reader.ReceiveReady -= OnReceiveReady;
-            });
+            m_eventDelegator = new EventDelegator<NetMQQueueEventArgs<T>>(
+                () => m_reader.ReceiveReady += OnReceiveReady,
+                () => m_reader.ReceiveReady -= OnReceiveReady);
 
             m_dequeueMsg = new Msg();
             m_dequeueMsg.InitEmpty();
@@ -70,11 +67,26 @@ namespace NetMQ
         /// </summary>
         public event EventHandler<NetMQQueueEventArgs<T>> ReceiveReady
         {
-            add { m_eventDelegator.Event += value; }
-            remove { m_eventDelegator.Event -= value; }
+            add => m_eventDelegator.Event += value;
+            remove => m_eventDelegator.Event -= value;
         }
 
         NetMQSocket ISocketPollable.Socket => m_reader;
+        
+        /// <summary>
+        /// Returns true if the queue is disposed
+        /// </summary>
+        public bool IsDisposed { get; private set; }
+
+        /// <summary>
+        /// Gets the number of items contained in the queue.
+        /// </summary>
+        public int Count => m_queue.Count;
+
+        /// <summary>
+        /// Gets a value that indicates whether the queue is empty.
+        /// </summary>
+        public bool IsEmpty => m_queue.IsEmpty;
 
         /// <summary>
         /// Try to dequeue an item from the queue. Dequeueing and item is not thread safe.
@@ -82,7 +94,7 @@ namespace NetMQ
         /// <param name="result">Will be filled with the item upon success</param>
         /// <param name="timeout">Timeout to try and dequeue and item</param>
         /// <returns>Will return false if it didn't succeed to dequeue an item after the timeout.</returns>
-        public bool TryDequeue(out T result, TimeSpan timeout)
+        public bool TryDequeue([MaybeNull] out T result, TimeSpan timeout)
         {
             if (m_reader.TryReceive(ref m_dequeueMsg, timeout))
             {
@@ -103,8 +115,7 @@ namespace NetMQ
         {
             m_reader.TryReceive(ref m_dequeueMsg, SendReceiveConstants.InfiniteTimeout);
 
-            T result;
-            m_queue.TryDequeue(out result);
+            m_queue.TryDequeue(out T result);
 
             return result;
         }
@@ -117,29 +128,21 @@ namespace NetMQ
         {
             m_queue.Enqueue(value);
 
-            Msg msg = new Msg();
+            var msg = new Msg();
             msg.InitGC(EmptyArray<byte>.Instance, 0);
 
             lock (m_writer)
-            {
                 m_writer.TrySend(ref msg, SendReceiveConstants.InfiniteTimeout, false);
-            }
+
             msg.Close();
         }
 
-        #region IENumerator methods
+        #region IEnumerator
 
-        /// <summary>
-        /// </summary>
-        public IEnumerator<T> GetEnumerator()
-        {
-            return m_queue.GetEnumerator();
-        }
+        /// <inheritdoc />
+        public IEnumerator<T> GetEnumerator() => m_queue.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            yield return GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         #endregion
 
@@ -148,10 +151,16 @@ namespace NetMQ
         /// </summary>
         public void Dispose()
         {
+            if (IsDisposed)
+                return;
+
             m_eventDelegator.Dispose();
             m_writer.Dispose();
             m_reader.Dispose();
             m_dequeueMsg.Close();
+
+            IsDisposed = true;
         }
     }
 }
+#endif

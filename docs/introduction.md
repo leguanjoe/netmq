@@ -34,24 +34,21 @@ So let's start with some code, the "Hello world" example (of course).
 
 ### Server
 
-    :::csharp
-    using (var server = new ResponseSocket())
+``` csharp
+using (var server = new ResponseSocket())
+{
+    server.Bind("tcp://*:5555");
+    while (true)
     {
-        server.Bind("tcp://*:5555");
-
-        while (true)
-        {
-            var message = server.ReceiveFrameString();
-
-            Console.WriteLine("Received {0}", message);
-
-            // processing the request
-            Thread.Sleep(100);
-
-            Console.WriteLine("Sending World");
-            server.SendFrame("World");
-        }
+        var message = server.ReceiveFrameString();
+        Console.WriteLine("Received {0}", message);
+        // processing the request
+        Thread.Sleep(100);
+        Console.WriteLine("Sending World");
+        server.SendFrame("World");
     }
+}
+```
 
 The server creates a socket of type response (you can read more on the [request-response](request-response.md) chapter), binds it to port 5555 and then waits for messages.
 
@@ -59,20 +56,19 @@ You can also see that we have zero configuration, we are just sending strings. N
 
 ### Client
 
-    :::csharp
-    using (var client = new RequestSocket())
+``` csharp
+using (var client = new RequestSocket())
+{
+    client.Connect("tcp://localhost:5555");
+    for (int i = 0; i < 10; i++)
     {
-        client.Connect("tcp://localhost:5555");
-
-        for (int i = 0; i < 10; i++)
-        {
-            Console.WriteLine("Sending Hello");
-            client.SendFrame("Hello");
-
-            var message = client.ReceiveFrameString();
-            Console.WriteLine("Received {0}", message);
-        }
+        Console.WriteLine("Sending Hello");
+        client.SendFrame("Hello");
+        var message = client.ReceiveFrameString();
+        Console.WriteLine("Received {0}", message);
     }
+}
+```
 
 The client create a socket of type request, connect and start sending messages.
 
@@ -80,12 +76,13 @@ Both the `Send` and `Receive` methods are blocking (by default). For the receive
 
 You can however call `TrySend` and `TryReceive` to avoid the waiting. The operation returns `false` if it would have blocked.
 
-    :::csharp
-    string message;
-    if (client.TryReceiveFrameString(out message))
-        Console.WriteLine("Received {0}", message);
-    else
-        Console.WriteLine("No message received");
+``` csharp
+string message;
+if (client.TryReceiveFrameString(out message))
+    Console.WriteLine("Received {0}", message);
+else
+    Console.WriteLine("No message received");
+```
 
 
 ## Bind vs Connect
@@ -120,22 +117,22 @@ This is covered in much more detail in the [Message](message.md) documentation p
 
 ZeroMQ (and therefore NetMQ) is all about patterns and building blocks. The <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a> covers everything you need to know to help you with these patterns. You should make sure you read the following sections before you attempt to start work with NetMQ.
 
-+ <a href="http://zguide.zeromq.org/page:all#Chapter-Sockets-and-Patterns" target="_blank">Chapter 2 - Sockets and Patterns</a>
-+ <a href="http://zguide.zeromq.org/page:all#Chapter-Advanced-Request-Reply-Patterns" target="_blank">Chapter 3 - Advanced Request-Reply Patterns</a>
-+ <a href="http://zguide.zeromq.org/page:all#Chapter-Reliable-Request-Reply-Patterns" target="_blank">Chapter 4 - Reliable Request-Reply Patterns</a>
-+ <a href="http://zguide.zeromq.org/page:all#Chapter-Advanced-Pub-Sub-Patterns" target="_blank">Chapter 5 - Advanced Pub-Sub Patterns</a>
++ <a href="https://zguide.zeromq.org/docs/chapter2/" target="_blank">Chapter 2 - Sockets and Patterns</a>
++ <a href="https://zguide.zeromq.org/docs/chapter3/" target="_blank">Chapter 3 - Advanced Request-Reply Patterns</a>
++ <a href="https://zguide.zeromq.org/docs/chapter4/" target="_blank">Chapter 4 - Reliable Request-Reply Patterns</a>
++ <a href="https://zguide.zeromq.org/docs/chapter5/" target="_blank">Chapter 5 - Advanced Pub-Sub Patterns</a>
 
 
 NetMQ also has some examples of a few of these patterns written using the NetMQ APIs. Should you find the pattern you are looking for in the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a> it should be fairly easy to translate that into NetMQ usage.
 
 Here are some links to the patterns that are available within the NetMQ codebase:
 
-+ <a href="https://github.com/zeromq/netmq/tree/master/src/Samples/Brokerless%20Reliability%20(Freelance%20Pattern)/Model%20One" target="_blank">Brokerless Reliability Pattern - Freelance Model one</a>
-+ <a href="https://github.com/zeromq/netmq/tree/master/src/Samples/Load%20Balancing%20Pattern" target="_blank">Load Balancer Patterns</a>
-+ <a href="https://github.com/zeromq/netmq/tree/master/src/Samples/Pirate%20Pattern/Lazy%20Pirate" target="_blank">Lazy Pirate Pattern</a>
-+ <a href="https://github.com/zeromq/netmq/tree/master/src/Samples/Pirate%20Pattern/Simple%20Pirate" target="_blank">Simple Pirate Pattern</a>
++ <a href="https://github.com/NetMQ/Samples/blob/master/src/Brokerless%20Reliability%20(Freelance%20Pattern)/Model%20One" target="_blank">Brokerless Reliability Pattern - Freelance Model one</a>
++ <a href="https://github.com/NetMQ/Samples/blob/master/src/Load%20Balancing%20Pattern" target="_blank">Load Balancer Patterns</a>
++ <a href="https://github.com/NetMQ/Samples/blob/master/src/Pirate%20Pattern/Lazy%20Pirate" target="_blank">Lazy Pirate Pattern</a>
++ <a href="https://github.com/NetMQ/Samples/blob/master/src/Pirate%20Pattern/Simple%20Pirate" target="_blank">Simple Pirate Pattern</a>
 
-For other patterns, the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a>
+For other patterns, the <a href="https://zguide.zeromq.org/" target="_blank">ZeroMQ guide</a>
 will be your first port of call
 
 ZeroMQ patterns are implemented by pairs of sockets of particular types. In other words, to understand ZeroMQ patterns you need to understand socket types and how they work together. Mostly, this just takes study; there is little that is obvious at this level.
@@ -168,11 +165,12 @@ NetMQ comes with several options that will effect how things work.
 
 Depending on the type of sockets you are using, or the topology you are attempting to create, you may find that you need to set some ZeroMQ options. In NetMQ this is done using the `NetMQSocket.Options` property.
 
-Here is a listing of the available properties that you may set on a `NetMQSocket`. It is hard to say exactly which of these values you may need to set, as that obviously depends entirely on what you are trying to achieve. All I can do is list the options, and make you aware of them. So here they are:
+Here is a listing of the available options that you may set on a `NetMQSocket`. It is hard to say exactly which of these values you may need to set, as that obviously depends entirely on what you are trying to achieve. All I can do is list the options, and make you aware of them. So here they are:
 
 + `Affinity`
 + `BackLog`
 + `CopyMessages`
++ `Correlate`
 + `DelayAttachOnConnect`
 + `Endian`
 + `GetLastEndpoint`
@@ -188,6 +186,7 @@ Here is a listing of the available properties that you may set on a `NetMQSocket
 + `ReceiveBuffer`
 + `ReconnectInterval`
 + `ReconnectIntervalMax`
++ `Relaxed`
 + `SendHighWaterMark`
 + `SendTimeout`
 + `SendBuffer`
@@ -197,4 +196,4 @@ Here is a listing of the available properties that you may set on a `NetMQSocket
 + `TcpKeepaliveInterval`
 + `XPubVerbose`
 
-We will not be covering all of these here, but shall instead cover them in the areas where they are used. For now just be aware that if you have read something in the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a> that mentions some option, that this is most likely the place you will need to set it/read from it.
+We will not be covering all of these here, but shall instead cover them in the areas where they are used. For now just be aware that if you have read something in the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a> that mentions some option, that this is most likely the place you will need to set it/read from it.  Also, the socket options are described in the <a href="http://api.zeromq.org/master:zmq-setsockopt" target="_blank">zmq_setsockopt</a> documentation.

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading;
-using JetBrains.Annotations;
 using NetMQ.Sockets;
 
 namespace NetMQ
@@ -16,7 +15,7 @@ namespace NetMQ
         /// Execute whatever action this <c>IShimHandler</c> represents against the given shim.
         /// </summary>
         /// <param name="shim"></param>
-        void Run([NotNull] PairSocket shim);
+        void Run(PairSocket shim);
     }
 
     #endregion
@@ -32,7 +31,7 @@ namespace NetMQ
         /// Create a new NetMQActorEventArgs with the given NetMQActor.
         /// </summary>
         /// <param name="actor">the NetMQActor for this exception to reference</param>
-        public NetMQActorEventArgs([NotNull] NetMQActor actor)
+        public NetMQActorEventArgs(NetMQActor actor)
         {
             Actor = actor;
         }
@@ -40,8 +39,7 @@ namespace NetMQ
         /// <summary>
         /// Get the NetMQActor that this exception references.
         /// </summary>
-        [NotNull]
-        public NetMQActor Actor { get; private set; }
+        public NetMQActor Actor { get; }
     }
 
     #endregion
@@ -90,7 +88,7 @@ namespace NetMQ
             /// </summary>
             /// <param name="action">a ShimAction of type T that comprises the action to perform</param>
             /// <param name="state">the state-information</param>
-            public ActionShimHandler([NotNull] ShimAction<T> action, T state)
+            public ActionShimHandler(ShimAction<T> action, T state)
             {
                 m_action = action;
                 m_state = state;
@@ -114,7 +112,7 @@ namespace NetMQ
             /// Create a new ActionShimHandler with a given action to operate upon that type.
             /// </summary>
             /// <param name="action">a ShimAction that comprises the action to perform</param>
-            public ActionShimHandler([NotNull] ShimAction action)
+            public ActionShimHandler(ShimAction action)
             {
                 m_action = action;
             }
@@ -140,28 +138,29 @@ namespace NetMQ
         private readonly EventDelegator<NetMQActorEventArgs> m_receiveEvent;
         private readonly EventDelegator<NetMQActorEventArgs> m_sendEvent;
 
+        private int m_isDisposed;
+
         #region Creating Actor
 
-        private NetMQActor(PairSocket self, PairSocket shim, [NotNull] IShimHandler shimHandler)
+        private NetMQActor(PairSocket self, PairSocket shim, IShimHandler shimHandler)
         {
             m_shimHandler = shimHandler;
 
             m_self = self;
             m_shim = shim;
 
-            EventHandler<NetMQSocketEventArgs> onReceive = (sender, e) =>
-                m_receiveEvent.Fire(this, new NetMQActorEventArgs(this));
+            var args = new NetMQActorEventArgs(this);
 
-            EventHandler<NetMQSocketEventArgs> onSend = (sender, e) =>
-                m_sendEvent.Fire(this, new NetMQActorEventArgs(this));
+            void OnReceive(object sender, NetMQSocketEventArgs e) => m_receiveEvent!.Fire(this, args);
+            void OnSend   (object sender, NetMQSocketEventArgs e) => m_sendEvent   !.Fire(this, args);
 
             m_receiveEvent = new EventDelegator<NetMQActorEventArgs>(
-                () => m_self.ReceiveReady += onReceive,
-                () => m_self.ReceiveReady -= onReceive);
+                () => m_self.ReceiveReady += OnReceive,
+                () => m_self.ReceiveReady -= OnReceive);
 
             m_sendEvent = new EventDelegator<NetMQActorEventArgs>(
-                () => m_self.SendReady += onSend,
-                () => m_self.SendReady -= onSend);
+                () => m_self.SendReady += OnSend,
+                () => m_self.SendReady -= OnSend);
 
             var random = new Random();
 
@@ -199,8 +198,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="shimHandler">an <c>IShimHandler</c> that provides the Run method</param>
         /// <returns>the newly-created <c>NetMQActor</c></returns>
-        [NotNull]
-        public static NetMQActor Create([NotNull] IShimHandler shimHandler)
+        public static NetMQActor Create(IShimHandler shimHandler)
         {
             return new NetMQActor(new PairSocket(), new PairSocket(), shimHandler);
         }
@@ -211,8 +209,7 @@ namespace NetMQ
         /// <param name="action">a <c>ShimAction</c> - delegate for the action to perform</param>
         /// <param name="state">the state-information - of the generic type T</param>
         /// <returns>the newly-created <c>NetMQActor</c></returns>
-        [NotNull]
-        public static NetMQActor Create<T>([NotNull] ShimAction<T> action, T state)
+        public static NetMQActor Create<T>(ShimAction<T> action, T state)
         {
             return new NetMQActor(new PairSocket(), new PairSocket(), new ActionShimHandler<T>(action, state));
         }
@@ -222,8 +219,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="action">a <c>ShimAction</c> - delegate for the action to perform</param>
         /// <returns>the newly-created <c>NetMQActor</c></returns>
-        [NotNull]
-        public static NetMQActor Create([NotNull] ShimAction action)
+        public static NetMQActor Create(ShimAction action)
         {
             return new NetMQActor(new PairSocket(), new PairSocket(), new ActionShimHandler(action));
         }
@@ -231,7 +227,7 @@ namespace NetMQ
         #endregion
 
         /// <summary>
-        /// Execute the shimhandler's Run method, signal ok and then dispose of the shim.
+        /// Execute the shim handler's Run method, signal ok and then dispose of the shim.
         /// </summary>
         private void RunShim()
         {
@@ -286,8 +282,8 @@ namespace NetMQ
         /// </summary>
         public event EventHandler<NetMQActorEventArgs> ReceiveReady
         {
-            add { m_receiveEvent.Event += value; }
-            remove { m_receiveEvent.Event -= value; }
+            add => m_receiveEvent.Event += value;
+            remove => m_receiveEvent.Event -= value;
         }
 
         /// <summary>
@@ -295,8 +291,8 @@ namespace NetMQ
         /// </summary>
         public event EventHandler<NetMQActorEventArgs> SendReady
         {
-            add { m_sendEvent.Event += value; }
-            remove { m_sendEvent.Event -= value; }
+            add => m_sendEvent.Event += value;
+            remove => m_sendEvent.Event -= value;
         }
 
         NetMQSocket ISocketPollable.Socket => m_self;
@@ -305,9 +301,7 @@ namespace NetMQ
 
         #region Disposing
 
-        /// <summary>
-        /// Release any contained resources.
-        /// </summary>
+        /// <inheritdoc />
         public void Dispose()
         {
             Dispose(true);
@@ -320,6 +314,8 @@ namespace NetMQ
         /// <param name="disposing">true if managed resources are to be released</param>
         protected virtual void Dispose(bool disposing)
         {
+            if (Interlocked.CompareExchange(ref m_isDisposed, 1, 0) != 0)
+                return;
             if (!disposing)
                 return;
 
@@ -332,6 +328,9 @@ namespace NetMQ
             m_sendEvent.Dispose();
             m_receiveEvent.Dispose();
         }
+
+        /// <inheritdoc />
+        public bool IsDisposed => m_isDisposed != 0;
 
         #endregion
     }

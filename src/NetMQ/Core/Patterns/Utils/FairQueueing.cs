@@ -22,6 +22,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace NetMQ.Core.Patterns.Utils
 {
@@ -95,18 +96,19 @@ namespace NetMQ.Core.Patterns.Utils
 
         public bool Recv(ref Msg msg)
         {
-            return RecvPipe(null, ref msg);
+            return RecvPipe(ref msg, out _);
         }
 
-        public bool RecvPipe(Pipe[] pipe, ref Msg msg)
+        public bool RecvPipe(ref Msg msg, [NotNullWhen(returnValue: true)] out Pipe? pipe)
         {
-            // Deallocate old content of the message.			
+            pipe = null;
+
+            // Deallocate old content of the message.
             msg.Close();
 
             // Round-robin over the pipes to get the next message.
             while (m_active > 0)
             {
-
                 // Try to fetch new message. If we've already read part of the message
                 // subsequent part should be immediately available.
                 bool fetched = m_pipes[m_current].Read(ref msg);
@@ -116,11 +118,11 @@ namespace NetMQ.Core.Patterns.Utils
                 // the 'current' pointer.
                 if (fetched)
                 {
-                    if (pipe != null)
-                        pipe[0] = m_pipes[m_current];
+                    pipe = m_pipes[m_current];
+
                     m_more = msg.HasMore;
                     if (!m_more)
-                        m_current = (m_current + 1) % m_active;
+                        m_current = m_active > 0 ? (m_current + 1) % m_active : 0;
                     return true;
                 }
 

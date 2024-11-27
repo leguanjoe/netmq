@@ -77,12 +77,12 @@ namespace NetMQ.Core
         /// This indicates more messages are to be received.
         /// </summary>
         ReceiveMore = 13,
- 
+
         /// <summary>
         /// The file descriptor associated with the specified socket.
         /// </summary>
         Handle = 14,
- 
+
         /// <summary>
         /// The event state for the specified socket.
         /// This is a combination of:
@@ -90,9 +90,9 @@ namespace NetMQ.Core
         ///   PollOut - at least one messsage may be sent without blocking
         /// </summary>
         Events = 15,
-        
+
         Type = 16,
-        
+
         /// <summary>
         /// This option specifies the linger period for the specified socket,
         /// which determines how long pending messages which have yet to be sent to a peer
@@ -191,7 +191,7 @@ namespace NetMQ.Core
         /// A value of 1 returns an EHOSTUNREACH error code if the message cannot be routed.
         /// </summary>
         RouterMandatory = 33,
-        
+
         /// <summary>
         /// Whether to use TCP keep-alive on this socket.
         /// 0 = no, 1 = yes,
@@ -206,7 +206,7 @@ namespace NetMQ.Core
         /// The TCP keepalive period is required by socket implementers to be configurable and by default is
         /// set to no less than 2 hours.
         /// In 0MQ, -1 (the default value) means to just leave it to the OS default.
-        /// </remarks>        
+        /// </remarks>
         TcpKeepaliveIdle = 36,
 
         /// <summary>
@@ -259,14 +259,14 @@ namespace NetMQ.Core
 
         /// <summary>
         /// The low-water mark for message transmission. This is the number of messages that should be processed
-        /// before transmission is unblocked (in case it was blocked by reaching high-watermark). The default value is 
+        /// before transmission is unblocked (in case it was blocked by reaching high-watermark). The default value is
         /// calculated using relevant high-watermark (HWM): HWM > 2048 ? HWM - 1024 : (HWM + 1) / 2
         /// </summary>
         SendLowWatermark = 46,
 
         /// <summary>
-        /// The low-water mark for message reception. This is the number of messages that should be processed 
-        /// before reception is unblocked (in case it was blocked by reaching high-watermark). The default value is 
+        /// The low-water mark for message reception. This is the number of messages that should be processed
+        /// before reception is unblocked (in case it was blocked by reaching high-watermark). The default value is
         /// calculated using relevant high-watermark (HWM): HWM > 2048 ? HWM - 1024 : (HWM + 1) / 2
         /// </summary>
         ReceiveLowWatermark = 47,
@@ -277,13 +277,77 @@ namespace NetMQ.Core
         RouterHandover = 48,
 
         /// <summary>
+        /// Returns the last peer routing id connect to the PEER socket
+        /// </summary>
+        LastPeerRoutingId = 49,
+        
+        /// <summary>
+        /// Defines whether the socket will act as server for CURVE security.
+        /// A value of true means the socket will act as CURVE server.
+        /// A value of false means the socket will not act as CURVE server, and its security role then depends on other option settings.
+        /// Setting this to false shall reset the socket security to NULL.
+        /// When you set this you must also set the server's secret key. A server socket does not need to know its own public key.
+        /// </summary>
+        CurveServer = 50,
+        
+        /// <summary>
+        /// Sets the socket's long term public key. You must set this on CURVE client sockets.
+        /// You can provide the key as 32 binary bytes,
+        /// The public key must always be used with the matching secret key.
+        /// To generate a public/secret key pair, NetMQKeyPair.Create.
+        /// </summary>
+        CurvePublicKey = 51,
+        
+        /// <summary>
+        /// Sets the socket's long term secret key.
+        /// You must set this on both CURVE client and server sockets.
+        /// You can provide the key as 32 binary bytes.
+        /// To generate a public/secret key pair, NetMQKeyPair.Create.
+        /// </summary>
+        CurveSecretKey = 52,
+        
+        /// <summary>
+        /// Sets the socket's long term server key.
+        /// You must set this on CURVE client sockets.
+        /// You can provide the key as 32 binary bytes.
+        /// This key must have been generated together with the server's secret key.
+        /// To generate a public/secret key pair, use NetMQKeyPair.Create.
+        /// </summary>
+        CurveServerKey = 53,
+        
+        /// <summary>
+        /// Time in milliseconds between sending heartbeat PING messages.
+        /// </summary>
+        HeartbeatInterval = 54,
+        
+        /// <summary>
+        /// If remote peer receives a PING message and doesn't receive another
+        /// message within the ttl value, it should close the connection
+        /// (measured in tenths of a second)
+        /// </summary>
+        HeartbeatTtl = 55,
+        
+        /// <summary>
+        /// Time in milliseconds to wait for a PING response before disconnecting
+        /// </summary>
+        HeartbeatTimeout = 56,
+        
+        /// <summary>
+        /// Hello Message to send to peer upon connecting
+        /// </summary>
+        HelloMessage = 57,
+        
+        /// <summary>
         /// Specifies the byte-order: big-endian, vs little-endian.
         /// </summary>
         Endian = 1000,
-
+        
         /// <summary>
         /// Specifies the max datagram size for PGM.
         /// </summary>
-        PgmMaxTransportServiceDataUnitLength = 1001
+        PgmMaxTransportServiceDataUnitLength = 1001,
+
+        Correlate = 58, // in zmq it's 52 and 53, but I guess it does not matter so long as it is unique.
+        Relaxed = 59
     }
 }

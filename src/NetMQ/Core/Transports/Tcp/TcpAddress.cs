@@ -39,13 +39,13 @@ namespace NetMQ.Core.Transports.Tcp
         /// <returns>a string in the form Protocol://[AddressFamily]:Port</returns>
         public override string ToString()
         {
-            if (Address == null)
+            if (this.Address == null)
                 return string.Empty;
 
-            var endpoint = Address;
+            var endpoint = this.Address;
 
-            return endpoint.AddressFamily == AddressFamily.InterNetworkV6 
-                ? Protocol + "://[" + endpoint.AddressFamily + "]:" + endpoint.Port 
+            return endpoint.AddressFamily == AddressFamily.InterNetworkV6
+                ? Protocol + "://[" + endpoint.AddressFamily + "]:" + endpoint.Port
                 : Protocol + "://" + endpoint.Address + ":" + endpoint.Port;
         }
 
@@ -96,34 +96,30 @@ namespace NetMQ.Core.Transports.Tcp
             // Interpret * as Any.
             if (addrStr == "*")
             {
-                ipAddress = ip4Only 
-                    ? IPAddress.Any 
+                ipAddress = ip4Only
+                    ? IPAddress.Any
                     : IPAddress.IPv6Any;
-            }            
+            }
             else if (!IPAddress.TryParse(addrStr, out ipAddress))
             {
-#if NETSTANDARD1_3
-                var availableAddresses = Dns.GetHostEntryAsync(addrStr).Result.AddressList;
-#else
                 var availableAddresses = Dns.GetHostEntry(addrStr).AddressList;
-#endif
 
-                ipAddress = ip4Only 
-                    ? availableAddresses.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork) 
+                ipAddress = ip4Only
+                    ? availableAddresses.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork)
                     : availableAddresses.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork || ip.AddressFamily == AddressFamily.InterNetworkV6);
 
                 if (ipAddress == null)
                     throw new InvalidException($"TcpAddress.Resolve, unable to find an IP address for {name}");
             }
 
-            Address = new IPEndPoint(ipAddress, port);             
+            this.Address = new IPEndPoint(ipAddress, port);
         }
 
         /// <summary>
         /// Get the Address implementation - which here is an IPEndPoint,
         /// which contains Address, AddressFamily, and Port properties.
         /// </summary>
-        public IPEndPoint Address { get; private set; }
+        public IPEndPoint? Address { get; private set; }
 
         /// <summary>
         /// Get the textual-representation of the communication protocol implied by this TcpAddress,

@@ -1,5 +1,7 @@
 ﻿using System;
-using NUnit.Framework;
+using System.Linq;
+using System.Text;
+using Xunit;
 
 namespace NetMQ.Tests
 {
@@ -20,10 +22,9 @@ namespace NetMQ.Tests
         }
     }
 
-    [TestFixture]
     public class OutgoingSocketExtensionsTests
     {
-        [Test]
+        [Fact]
         public void SendMultipartBytesTest()
         {
             var count = 0;
@@ -32,18 +33,20 @@ namespace NetMQ.Tests
             {
                 if (count == 0)
                 {
-                    Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, timeout);
-                    Assert.AreEqual(1, msg.Data.Length);
-                    Assert.AreEqual(1, msg.Data[0]);
-                    Assert.IsTrue(more);
+                    Assert.Equal(SendReceiveConstants.InfiniteTimeout, timeout);
+                    Assert.NotNull(msg.UnsafeData);
+                    Assert.Single(msg.UnsafeData);
+                    Assert.Equal(1, msg.UnsafeData![0]);
+                    Assert.True(more);
                     count++;
                 }
                 else
                 {
-                    Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, timeout);
-                    Assert.AreEqual(1, msg.Data.Length);
-                    Assert.AreEqual(2, msg.Data[0]);
-                    Assert.IsFalse(more);
+                    Assert.Equal(SendReceiveConstants.InfiniteTimeout, timeout);
+                    Assert.NotNull(msg.UnsafeData);
+                    Assert.Single(msg.UnsafeData);
+                    Assert.Equal(2, msg.UnsafeData![0]);
+                    Assert.False(more);
                     count++;
                 }
 
@@ -51,10 +54,10 @@ namespace NetMQ.Tests
             });
 
             socket.SendMultipartBytes(new byte[] { 1 }, new byte[] { 2 });
-            Assert.AreEqual(2, count);
+            Assert.Equal(2, count);
         }
 
-        [Test]
+        [Fact]
         public void TrySendMultipartBytesWithTimeoutTest()
         {
             var count = 0;
@@ -63,29 +66,31 @@ namespace NetMQ.Tests
             {
                 if (count == 0)
                 {
-                    Assert.AreEqual(TimeSpan.FromSeconds(1), timeout);
-                    Assert.AreEqual(1, msg.Data.Length);
-                    Assert.AreEqual(1, msg.Data[0]);
-                    Assert.IsTrue(more);
+                    Assert.Equal(TimeSpan.FromSeconds(1), timeout);
+                    Assert.NotNull(msg.UnsafeData);
+                    Assert.Single(msg.UnsafeData);
+                    Assert.Equal(1, msg.UnsafeData![0]);
+                    Assert.True(more);
                     count++;
                 }
                 else
                 {
-                    Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, timeout);
-                    Assert.AreEqual(1, msg.Data.Length);
-                    Assert.AreEqual(2, msg.Data[0]);
-                    Assert.IsFalse(more);
+                    Assert.Equal(SendReceiveConstants.InfiniteTimeout, timeout);
+                    Assert.NotNull(msg.UnsafeData);
+                    Assert.Single(msg.UnsafeData);
+                    Assert.Equal(2, msg.UnsafeData![0]);
+                    Assert.False(more);
                     count++;
                 }
 
                 return true;
             });
 
-            Assert.IsTrue(socket.TrySendMultipartBytes(TimeSpan.FromSeconds(1), new byte[] { 1 }, new byte[] { 2 }));
-            Assert.AreEqual(2, count);
+            Assert.True(socket.TrySendMultipartBytes(TimeSpan.FromSeconds(1), new byte[] { 1 }, new byte[] { 2 }));
+            Assert.Equal(2, count);
         }
 
-        [Test]
+        [Fact]
         public void TrySendMultipartBytesWithTimeoutTestFailed()
         {
             var count = 0;
@@ -93,20 +98,21 @@ namespace NetMQ.Tests
             var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
 
-                Assert.AreEqual(TimeSpan.FromSeconds(1), timeout);
-                Assert.AreEqual(1, msg.Data.Length);
-                Assert.AreEqual(1, msg.Data[0]);
-                Assert.IsTrue(more);
+                Assert.Equal(TimeSpan.FromSeconds(1), timeout);
+                    Assert.NotNull(msg.UnsafeData);
+                Assert.Single(msg.UnsafeData);
+                Assert.Equal(1, msg.UnsafeData![0]);
+                Assert.True(more);
                 count++;
 
                 return false;
             });
 
-            Assert.IsFalse(socket.TrySendMultipartBytes(TimeSpan.FromSeconds(1), new byte[] { 1 }, new byte[] { 2 }));
-            Assert.AreEqual(1, count);
+            Assert.False(socket.TrySendMultipartBytes(TimeSpan.FromSeconds(1), new byte[] { 1 }, new byte[] { 2 }));
+            Assert.Equal(1, count);
         }
 
-        [Test]
+        [Fact]
         public void TrySendMultipartBytesTest()
         {
             var count = 0;
@@ -115,29 +121,31 @@ namespace NetMQ.Tests
             {
                 if (count == 0)
                 {
-                    Assert.AreEqual(TimeSpan.FromSeconds(0), timeout);
-                    Assert.AreEqual(1, msg.Data.Length);
-                    Assert.AreEqual(1, msg.Data[0]);
-                    Assert.IsTrue(more);
+                    Assert.Equal(TimeSpan.FromSeconds(0), timeout);
+                    Assert.NotNull(msg.UnsafeData);
+                    Assert.Single(msg.UnsafeData);
+                    Assert.Equal(1, msg.UnsafeData![0]);
+                    Assert.True(more);
                     count++;
                 }
                 else
                 {
-                    Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, timeout);
-                    Assert.AreEqual(1, msg.Data.Length);
-                    Assert.AreEqual(2, msg.Data[0]);
-                    Assert.IsFalse(more);
+                    Assert.Equal(SendReceiveConstants.InfiniteTimeout, timeout);
+                    Assert.NotNull(msg.UnsafeData);
+                    Assert.Single(msg.UnsafeData);
+                    Assert.Equal(2, msg.UnsafeData![0]);
+                    Assert.False(more);
                     count++;
                 }
 
                 return true;
             });
 
-            Assert.IsTrue(socket.TrySendMultipartBytes(new byte[] { 1 }, new byte[] { 2 }));
-            Assert.AreEqual(2, count);
+            Assert.True(socket.TrySendMultipartBytes(new byte[] { 1 }, new byte[] { 2 }));
+            Assert.Equal(2, count);
         }
 
-        [Test]
+        [Fact]
         public void TrySendMultipartMessageTest()
         {
             var count = 0;
@@ -146,18 +154,20 @@ namespace NetMQ.Tests
             {
                 if (count == 0)
                 {
-                    Assert.AreEqual(TimeSpan.FromSeconds(0), timeout);
-                    Assert.AreEqual(1, msg.Data.Length);
-                    Assert.AreEqual(1, msg.Data[0]);
-                    Assert.IsTrue(more);
+                    Assert.Equal(TimeSpan.FromSeconds(0), timeout);
+                    Assert.NotNull(msg.UnsafeData);
+                    Assert.Single(msg.UnsafeData);
+                    Assert.Equal(1, msg.UnsafeData![0]);
+                    Assert.True(more);
                     count++;
                 }
                 else
                 {
-                    Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, timeout);
-                    Assert.AreEqual(1, msg.Data.Length);
-                    Assert.AreEqual(2, msg.Data[0]);
-                    Assert.IsFalse(more);
+                    Assert.Equal(SendReceiveConstants.InfiniteTimeout, timeout);
+                    Assert.NotNull(msg.UnsafeData);
+                    Assert.Single(msg.UnsafeData);
+                    Assert.Equal(2, msg.UnsafeData![0]);
+                    Assert.False(more);
                     count++;
                 }
 
@@ -168,21 +178,22 @@ namespace NetMQ.Tests
             message.Append(new byte[] {1});
             message.Append(new byte[] {2});
 
-            Assert.IsTrue(socket.TrySendMultipartMessage(message));
-            Assert.AreEqual(2, count);
+            Assert.True(socket.TrySendMultipartMessage(message));
+            Assert.Equal(2, count);
         }
 
-        [Test]
+        [Fact]
         public void TrySendMultipartMessageFailed()
         {
             var count = 0;
 
             var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
-                Assert.AreEqual(TimeSpan.FromSeconds(0), timeout);
-                Assert.AreEqual(1, msg.Data.Length);
-                Assert.AreEqual(1, msg.Data[0]);
-                Assert.IsTrue(more);
+                Assert.Equal(TimeSpan.FromSeconds(0), timeout);
+                    Assert.NotNull(msg.UnsafeData);
+                Assert.Single(msg.UnsafeData);
+                Assert.Equal(1, msg.UnsafeData![0]);
+                Assert.True(more);
                 count++;
 
                 return false;
@@ -192,123 +203,147 @@ namespace NetMQ.Tests
             message.Append(new byte[] { 1 });
             message.Append(new byte[] { 2 });
 
-            Assert.IsFalse(socket.TrySendMultipartMessage(message));
-            Assert.AreEqual(1, count);
+            Assert.False(socket.TrySendMultipartMessage(message));
+            Assert.Equal(1, count);
         }
 
-        [Test]
+        [Fact]
         public void SendFrameEmpty()
         {
             var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
-                Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, timeout);
-                Assert.AreEqual(0, msg.Data.Length);
-                Assert.IsFalse(more);
+                Assert.Equal(SendReceiveConstants.InfiniteTimeout, timeout);
+                Assert.NotNull(msg.UnsafeData);
+                Assert.Empty(msg.UnsafeData);
+                Assert.False(more);
                 return true;
             });
 
             socket.SendFrameEmpty();
         }
 
-        [Test]
+        [Fact]
         public void SendMoreFrameEmpty()
         {
             var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
-                Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, timeout);
-                Assert.AreEqual(0, msg.Data.Length);
-                Assert.IsTrue(more);
+                Assert.Equal(SendReceiveConstants.InfiniteTimeout, timeout);
+                Assert.NotNull(msg.UnsafeData);
+                Assert.Empty(msg.UnsafeData);
+                Assert.True(more);
                 return true;
             });
 
             var returnedSocket = socket.SendMoreFrameEmpty();
-            Assert.AreEqual(returnedSocket, socket);
+            Assert.Equal(returnedSocket, socket);
         }
 
-        [Test]
+        [Fact]
         public void TrySendFrameEmpty()
         {
             var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
-                Assert.AreEqual(TimeSpan.Zero, timeout);
-                Assert.AreEqual(0, msg.Data.Length);
-                Assert.IsFalse(more);
+                Assert.Equal(TimeSpan.Zero, timeout);
+                Assert.NotNull(msg.UnsafeData);
+                Assert.Empty(msg.UnsafeData);
+                Assert.False(more);
                 return true;
             });
 
-            Assert.IsTrue(socket.TrySendFrameEmpty());
+            Assert.True(socket.TrySendFrameEmpty());
         }
 
 
-        [Test]
+        [Fact]
         public void TrySendFrameEmptyFailed()
         {
             var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
-                Assert.AreEqual(TimeSpan.Zero, timeout);
-                Assert.AreEqual(0, msg.Data.Length);
-                Assert.IsFalse(more);
+                Assert.Equal(TimeSpan.Zero, timeout);
+                Assert.NotNull(msg.UnsafeData);
+                Assert.Empty(msg.UnsafeData);
+                Assert.False(more);
                 return false;
             });
 
-            Assert.IsFalse(socket.TrySendFrameEmpty());
+            Assert.False(socket.TrySendFrameEmpty());
         }
 
-        [Test]
+        [Fact]
         public void SignalTest()
         {
             var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
-                Assert.AreEqual(SendReceiveConstants.InfiniteTimeout, timeout);
-                Assert.AreEqual(8, msg.Data.Length);
+                Assert.Equal(SendReceiveConstants.InfiniteTimeout, timeout);
+                Assert.NotNull(msg.UnsafeData);
+                Assert.Equal(8, msg.UnsafeData!.Length);
 
-                var value = NetworkOrderBitsConverter.ToInt64(msg.Data);
+                var value = NetworkOrderBitsConverter.ToInt64(msg.UnsafeData);
 
-                Assert.AreEqual(0x7766554433221100L, value);
+                Assert.Equal(0x7766554433221100L, value);
 
-                Assert.IsFalse(more);
+                Assert.False(more);
                 return true;
             });
 
             socket.SignalOK();
         }
 
-        [Test]
+        [Fact]
         public void TrySignalTest()
         {
             var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
-                Assert.AreEqual(TimeSpan.Zero, timeout);
-                Assert.AreEqual(8, msg.Data.Length);
+                Assert.Equal(TimeSpan.Zero, timeout);
+                Assert.NotNull(msg.UnsafeData);
+                Assert.Equal(8, msg.UnsafeData!.Length);
 
-                var value = NetworkOrderBitsConverter.ToInt64(msg.Data);
+                var value = NetworkOrderBitsConverter.ToInt64(msg.UnsafeData);
 
-                Assert.AreEqual(0x7766554433221100L, value);
+                Assert.Equal(0x7766554433221100L, value);
 
-                Assert.IsFalse(more);
+                Assert.False(more);
                 return true;
             });
 
-            Assert.IsTrue(socket.TrySignalOK());
+            Assert.True(socket.TrySignalOK());
         }
 
-        [Test]
+        [Fact]
         public void TrySignalFailedTest()
         {
             var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
-                Assert.AreEqual(TimeSpan.Zero, timeout);
-                Assert.AreEqual(8, msg.Data.Length);
+                Assert.Equal(TimeSpan.Zero, timeout);
+                Assert.NotNull(msg.UnsafeData);
+                Assert.Equal(8, msg.UnsafeData!.Length);
 
-                var value = NetworkOrderBitsConverter.ToInt64(msg.Data);
+                var value = NetworkOrderBitsConverter.ToInt64(msg.UnsafeData);
 
-                Assert.AreEqual(0x7766554433221100L, value);
+                Assert.Equal(0x7766554433221100L, value);
 
-                Assert.IsFalse(more);
+                Assert.False(more);
                 return false;
             });
 
-            Assert.IsFalse(socket.TrySignalOK());
+            Assert.False(socket.TrySignalOK());
+        }
+
+        [Fact]
+        public void TrySendFrameBiggerBufferThanLength()
+        {
+	        var buffer = new byte[64];
+	        var data = Encoding.ASCII.GetBytes("Hello there");
+	        data.CopyTo(buffer, 0);
+	        var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
+	        {
+		        Assert.Equal(TimeSpan.Zero, timeout);
+		        Assert.True(data.SequenceEqual(msg.ToArray()));
+		        Assert.False(more);
+		        return true;
+	        });
+
+	        Assert.True(socket.TrySendFrame(TimeSpan.Zero, buffer, data.Length));
         }
     }
 }
